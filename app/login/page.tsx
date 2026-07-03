@@ -24,10 +24,13 @@ export default function LoginPage() {
       if (!token) throw new Error('No token received');
       setAuth(token, user);
       // Auto-detect the user's primary org so dashboard loads immediately
-      orgApi.getPrimary().then((org: any) => {
-        const id = org?.id ?? org?.data?.id ?? org?.organization?.id;
-        if (id) setOrgId(id);
-      }).catch(() => {});
+      if (user?.id) {
+        orgApi.getPrimary(user.id).then((res: any) => {
+          const memberships: any[] = res?.memberships ?? [];
+          const id = memberships[0]?.organization?.id ?? memberships[0]?.id;
+          if (id) setOrgId(id);
+        }).catch(() => {});
+      }
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.message ?? 'Login failed');

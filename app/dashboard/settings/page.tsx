@@ -4,7 +4,7 @@ import { useAuth } from '@/src/presentation/hooks/useAuth';
 import { shopApi, orgApi } from '@/src/core/api/api';
 
 export default function SettingsPage() {
-  const { orgId, setOrgId } = useAuth();
+  const { orgId, setOrgId, user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ name: '', slug: '', description: '', currency: 'DZD', phone: '', address: '' });
   const [saving, setSaving] = useState(false);
@@ -33,8 +33,9 @@ export default function SettingsPage() {
     e.preventDefault();
     setSaving(true); setError('');
     try {
-      const org: any = await orgApi.create({ name: form.name, type: 'matjari' });
-      const id = org?.id ?? org?.data?.id ?? org?.organization?.id;
+      if (!user?.id) throw new Error('Not authenticated');
+      const org: any = await orgApi.create(user.id, { name: form.name, type: 'matjari' });
+      const id = org?.organization?.id ?? org?.id ?? org?.data?.id;
       if (!id) throw new Error('Organization creation failed');
       await shopApi.setup(id, form);
       setOrgId(id);

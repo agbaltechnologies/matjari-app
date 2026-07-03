@@ -11,8 +11,10 @@ export const authApi = {
 
 // ─── Organizations ─────────────────────────────────────────────────────────
 export const orgApi = {
-  create:     (data: { name: string; type?: string }) => httpClient.post('/agencies', data),
-  getPrimary: ()                                       => httpClient.get('/agencies/primary'),
+  create:     (userId: string, data: { name: string; type?: string }) =>
+    httpClient.post('/organizations', { userId, creatorUserId: userId, ...data }),
+  getPrimary: (userId: string) =>
+    httpClient.get(`/organizations/users/${userId}/memberships`),
 };
 
 // ─── Shop ─────────────────────────────────────────────────────────────────
