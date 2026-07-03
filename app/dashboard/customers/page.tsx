@@ -17,7 +17,7 @@ export default function CustomersPage() {
   const [error, setError] = useState('');
 
   const load = () => {
-    if (!orgId) return;
+    if (!orgId) { setLoading(false); return; }
     setLoading(true);
     customerApi.list(orgId)
       .then((d: any) => setCustomers(Array.isArray(d?.customers ?? d) ? (d?.customers ?? d) : []))
@@ -32,7 +32,7 @@ export default function CustomersPage() {
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    if (!orgId) return;
+    if (!orgId) { setLoading(false); return; }
     setSaving(true); setError('');
     try {
       if (editing) await customerApi.update(orgId, editing.id, form);

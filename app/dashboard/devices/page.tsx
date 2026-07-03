@@ -16,7 +16,7 @@ export default function DevicesPage() {
   const [newDevice, setNewDevice] = useState<{ deviceCode: string; passcode: string } | null>(null);
 
   const load = () => {
-    if (!orgId) return;
+    if (!orgId) { setLoading(false); return; }
     setLoading(true);
     deviceApi.list(orgId)
       .then((d: any) => setDevices(Array.isArray(d?.devices ?? d) ? (d?.devices ?? d) : []))
@@ -28,7 +28,7 @@ export default function DevicesPage() {
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
-    if (!orgId) return;
+    if (!orgId) { setLoading(false); return; }
     setSaving(true); setError('');
     try {
       const result: any = await deviceApi.create(orgId, form);
@@ -48,7 +48,7 @@ export default function DevicesPage() {
   }
 
   async function handleResetPasscode(id: string) {
-    if (!orgId) return;
+    if (!orgId) { setLoading(false); return; }
     try {
       const result: any = await deviceApi.update(orgId, id, { resetPasscode: true });
       const dev = result?.device ?? result;

@@ -24,7 +24,7 @@ export default function SalesPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!orgId) return;
+    if (!orgId) { setLoading(false); return; }
     setLoading(true);
     Promise.all([
       productApi.list(orgId).then((d: any) => setProducts(Array.isArray(d?.products ?? d) ? (d?.products ?? d) : [])).catch(() => {}),

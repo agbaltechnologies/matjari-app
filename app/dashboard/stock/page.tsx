@@ -17,7 +17,7 @@ export default function StockPage() {
   const [error, setError] = useState('');
 
   const load = () => {
-    if (!orgId) return;
+    if (!orgId) { setLoading(false); return; }
     setLoading(true);
     Promise.all([
       stockApi.movements(orgId).then((d: any) => setMovements(Array.isArray(d?.movements ?? d) ? (d?.movements ?? d) : [])).catch(() => {}),
@@ -29,7 +29,7 @@ export default function StockPage() {
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    if (!orgId) return;
+    if (!orgId) { setLoading(false); return; }
     setSaving(true); setError('');
     try {
       await stockApi.addMovement(orgId, { ...form, qty: parseInt(form.qty) } as any);

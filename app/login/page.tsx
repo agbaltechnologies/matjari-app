@@ -2,12 +2,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { authApi } from '@/src/core/api/api';
+import { authApi, orgApi } from '@/src/core/api/api';
 import { useAuth } from '@/src/presentation/hooks/useAuth';
 
 export default function LoginPage() {
   const router = useRouter();
-  const setAuth = useAuth((s) => s.setAuth);
+  const { setAuth, setOrgId } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -23,6 +23,11 @@ export default function LoginPage() {
       const user = data?.user;
       if (!token) throw new Error('No token received');
       setAuth(token, user);
+      // Auto-detect the user's primary org so dashboard loads immediately
+      orgApi.getPrimary().then((org: any) => {
+        const id = org?.id ?? org?.data?.id ?? org?.organization?.id;
+        if (id) setOrgId(id);
+      }).catch(() => {});
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.message ?? 'Login failed');

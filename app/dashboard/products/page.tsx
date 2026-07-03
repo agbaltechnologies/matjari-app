@@ -16,7 +16,7 @@ export default function ProductsPage() {
   const [error, setError] = useState('');
 
   const load = () => {
-    if (!orgId) return;
+    if (!orgId) { setLoading(false); return; }
     setLoading(true);
     productApi.list(orgId)
       .then((d: any) => setProducts(Array.isArray(d?.products ?? d) ? (d?.products ?? d) : []))
@@ -31,7 +31,7 @@ export default function ProductsPage() {
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    if (!orgId) return;
+    if (!orgId) { setLoading(false); return; }
     setSaving(true); setError('');
     try {
       const payload = { ...form, price: parseFloat(form.price) };

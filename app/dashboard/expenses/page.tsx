@@ -18,7 +18,7 @@ export default function ExpensesPage() {
   const [error, setError] = useState('');
 
   const load = () => {
-    if (!orgId) return;
+    if (!orgId) { setLoading(false); return; }
     setLoading(true);
     expenseApi.list(orgId)
       .then((d: any) => setExpenses(Array.isArray(d?.expenses ?? d) ? (d?.expenses ?? d) : []))
@@ -33,7 +33,7 @@ export default function ExpensesPage() {
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    if (!orgId) return;
+    if (!orgId) { setLoading(false); return; }
     setSaving(true); setError('');
     try {
       const payload = { ...form, amount: parseFloat(form.amount) };

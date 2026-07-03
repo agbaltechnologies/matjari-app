@@ -9,12 +9,18 @@ export const authApi = {
   getMe:    ()                                                       => httpClient.get('/auth/me'),
 };
 
+// ─── Organizations ─────────────────────────────────────────────────────────
+export const orgApi = {
+  create:     (data: { name: string; type?: string }) => httpClient.post('/agencies', data),
+  getPrimary: ()                                       => httpClient.get('/agencies/primary'),
+};
+
 // ─── Shop ─────────────────────────────────────────────────────────────────
 export const shopApi = {
-  setup:    (orgId: string, d: any)     => httpClient.post(`/shop/${orgId}/setup`, d),
-  getMyShop: (orgId: string)            => httpClient.get(`/shop/${orgId}`),
-  update:   (orgId: string, d: any)     => httpClient.patch(`/shop/${orgId}`, d),
-  storefront: (slug: string)            => httpClient.get(`/shop/storefront/${slug}`),
+  setup:      (orgId: string, d: any) => httpClient.post(`/shop/${orgId}/setup`, d),
+  getMyShop:  (orgId: string)         => httpClient.get(`/shop/${orgId}/profile`),
+  update:     (orgId: string, d: any) => httpClient.put(`/shop/${orgId}/profile`, d),
+  storefront: (slug: string)          => httpClient.get(`/shop/storefront/${slug}`),
 };
 
 // ─── Products ─────────────────────────────────────────────────────────────

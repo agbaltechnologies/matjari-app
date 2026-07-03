@@ -1,48 +1,46 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/src/presentation/hooks/useAuth';
-import { shopApi } from '@/src/core/api/api';
+import { shopApi, orgApi } from '@/src/core/api/api';
 
 export default function SettingsPage() {
   const { orgId, setOrgId } = useAuth();
-  const [shop, setShop] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ name: '', slug: '', description: '', currency: 'DZD', phone: '', address: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [setupOrgId, setSetupOrgId] = useState('');
-  const [setupLoading, setSetupLoading] = useState(false);
 
   useEffect(() => {
     if (!orgId) { setLoading(false); return; }
     shopApi.getMyShop(orgId)
       .then((d: any) => {
-        const s = d?.shop ?? d;
-        setShop(s);
-        setForm({
-          name: s?.name ?? '',
-          slug: s?.slug ?? '',
-          description: s?.description ?? '',
-          currency: s?.currency ?? 'DZD',
-          phone: s?.phone ?? '',
-          address: s?.address ?? '',
+        const s = d?.shop ?? d?.data ?? d;
+        if (s?.name) setForm({
+          name: s.name ?? '',
+          slug: s.slug ?? '',
+          description: s.description ?? '',
+          currency: s.currency ?? 'DZD',
+          phone: s.phone ?? '',
+          address: s.address ?? '',
         });
       })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [orgId]);
 
-  async function handleSetup(e: React.FormEvent) {
+  async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
-    if (!setupOrgId) return;
-    setSetupLoading(true); setError('');
+    setSaving(true); setError('');
     try {
-      await shopApi.setup(setupOrgId, form);
-      setOrgId(setupOrgId);
+      const org: any = await orgApi.create({ name: form.name, type: 'matjari' });
+      const id = org?.id ?? org?.data?.id ?? org?.organization?.id;
+      if (!id) throw new Error('Organization creation failed');
+      await shopApi.setup(id, form);
+      setOrgId(id);
       setSuccess('Shop created!');
-    } catch (err: any) { setError(err.message); }
-    finally { setSetupLoading(false); }
+    } catch (err: any) { setError(err.message ?? 'Setup failed'); }
+    finally { setSaving(false); }
   }
 
   async function handleUpdate(e: React.FormEvent) {
@@ -52,7 +50,7 @@ export default function SettingsPage() {
     try {
       await shopApi.update(orgId, form);
       setSuccess('Settings saved!');
-    } catch (err: any) { setError(err.message); }
+    } catch (err: any) { setError(err.message ?? 'Save failed'); }
     finally { setSaving(false); }
   }
 
@@ -63,23 +61,15 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Shop Settings</h1>
-
+      <h1 className="text-2xl font-bold text-gray-900 mb-2">Shop Settings</h1>
       {!orgId && (
-        <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700">
-          <strong>Link your organization</strong> — enter your Organization ID to connect your shop.
-          <input
-            type="text" placeholder="Organization ID (UUID)"
-            value={setupOrgId} onChange={(e) => setSetupOrgId(e.target.value)}
-            className="mt-2 w-full px-3 py-2 border border-amber-300 rounded-lg bg-white text-gray-900 text-sm outline-none focus:ring-2 focus:ring-amber-400"
-          />
-        </div>
+        <p className="text-gray-500 text-sm mb-6">Fill in your shop details to get started.</p>
       )}
 
       {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
       {success && <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">{success}</div>}
 
-      <form onSubmit={orgId ? handleUpdate : handleSetup} className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+      <form onSubmit={orgId ? handleUpdate : handleCreate} className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Shop name</label>
           <input type="text" value={form.name} onChange={set('name')} required
@@ -88,7 +78,7 @@ export default function SettingsPage() {
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Slug (URL handle)</label>
-          <input type="text" value={form.slug} onChange={set('slug')} required
+          <input type="text" value={form.slug} onChange={set('slug')}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
             placeholder="my-shop" />
         </div>
@@ -121,11 +111,15 @@ export default function SettingsPage() {
           <input type="text" value={form.address} onChange={set('address')}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
         </div>
-        <button type="submit" disabled={saving || setupLoading}
+        <button type="submit" disabled={saving}
           className="w-full py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 disabled:opacity-50 transition">
-          {saving || setupLoading ? 'Saving…' : orgId ? 'Save changes' : 'Create shop'}
+          {saving ? 'Saving…' : orgId ? 'Save changes' : 'Create my shop'}
         </button>
       </form>
+
+      {orgId && (
+        <p className="mt-4 text-xs text-gray-400">Organization ID: {orgId}</p>
+      )}
     </div>
   );
 }

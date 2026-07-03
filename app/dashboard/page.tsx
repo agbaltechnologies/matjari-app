@@ -31,7 +31,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!orgId) return;
+    if (!orgId) { setLoading(false); return; }
     Promise.all([
       saleApi.summary(orgId).then((d: any) => setSummary(d ?? {})).catch(() => {}),
       productApi.list(orgId).then((d: any) => setProductCount(Array.isArray(d?.products ?? d) ? (d?.products ?? d).length : 0)).catch(() => {}),
