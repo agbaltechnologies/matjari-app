@@ -20,12 +20,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
   const { token, user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => { setHydrated(true); }, []);
 
   useEffect(() => {
-    if (!token) router.push('/login');
-  }, [token, router]);
+    if (hydrated && !token) router.push('/login');
+  }, [hydrated, token, router]);
 
-  if (!token) return null;
+  if (!hydrated) return null;
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
