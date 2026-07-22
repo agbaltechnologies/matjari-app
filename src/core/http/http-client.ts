@@ -77,6 +77,14 @@ class HttpClient {
     if (!r.ok) throw new Error(await parseError(r));
     return unwrap<T>(await r.json());
   }
+
+  async upload<T>(path: string, formData: FormData): Promise<T> {
+    const headers: Record<string, string> = { 'X-App': 'matjari' };
+    if (this.authToken) headers['Authorization'] = `Bearer ${this.authToken}`;
+    const r = await fetch(API_BASE_URL + path, { method: 'POST', headers, body: formData });
+    if (!r.ok) throw new Error(await parseError(r));
+    return unwrap<T>(await r.json());
+  }
 }
 
 export const httpClient = HttpClient.getInstance();

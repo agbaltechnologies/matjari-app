@@ -38,9 +38,11 @@ export const productApi = {
 export const stockApi = {
   movements: (orgId: string, productId?: string) =>
     httpClient.get(`/shop/${orgId}/stock/movements`, productId ? { productId } : undefined),
-  addMovement: (orgId: string, d: { productId: string; type: 'in' | 'out' | 'adjustment'; qty: number; note?: string }) =>
-    httpClient.post(`/shop/${orgId}/stock/movements`, d),
-  snapshot: (orgId: string) => httpClient.get(`/shop/${orgId}/stock/snapshot`),
+  add: (orgId: string, d: { productId: string; qty: number; movementType?: string; unitCost?: number; reason?: string }) =>
+    httpClient.post(`/shop/${orgId}/stock/add`, d),
+  adjust: (orgId: string, d: { productId: string; newQty: number; reason?: string }) =>
+    httpClient.patch(`/shop/${orgId}/stock/adjust`, d),
+  alerts: (orgId: string) => httpClient.get(`/shop/${orgId}/stock/alerts`),
 };
 
 // ─── Customers ────────────────────────────────────────────────────────────
@@ -80,4 +82,15 @@ export const deviceApi = {
   update:   (orgId: string, id: string, d: any) => httpClient.put(`/shop/${orgId}/kiosk-devices/${id}`, d),
   delete:   (orgId: string, id: string) => httpClient.delete(`/shop/${orgId}/kiosk-devices/${id}`),
   settings: (orgId: string)             => httpClient.get(`/shop/${orgId}/settings/devices`),
+};
+
+// ─── Storage ──────────────────────────────────────────────────────────────
+export const storageApi = {
+  uploadFile: (orgId: string, file: File, folderPath = 'products') => {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('organizationId', orgId);
+    fd.append('folderPath', folderPath);
+    return httpClient.upload('/storage/files/upload', fd);
+  },
 };
