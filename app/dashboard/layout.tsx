@@ -3,16 +3,19 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/src/presentation/hooks/useAuth';
+import { UserMenuDropdown } from '@/src/presentation/components/user-menu-dropdown';
+import { LowStockBell } from '@/src/presentation/components/low-stock-bell';
 
 const NAV = [
-  { href: '/dashboard', label: 'Overview', icon: '📊' },
-  { href: '/dashboard/sales', label: 'Sales / POS', icon: '🛒' },
-  { href: '/dashboard/products', label: 'Products', icon: '📦' },
-  { href: '/dashboard/stock', label: 'Stock', icon: '🏭' },
-  { href: '/dashboard/customers', label: 'Customers', icon: '👥' },
-  { href: '/dashboard/expenses', label: 'Expenses', icon: '💰' },
-  { href: '/dashboard/devices', label: 'Devices', icon: '🖥️' },
-  { href: '/dashboard/settings', label: 'Shop Settings', icon: '⚙️' },
+  { href: '/dashboard', label: 'Overview' },
+  { href: '/dashboard/sales', label: 'Sales / POS' },
+  { href: '/dashboard/products', label: 'Products' },
+  { href: '/dashboard/stock', label: 'Stock' },
+  { href: '/dashboard/customers', label: 'Customers' },
+  { href: '/dashboard/expenses', label: 'Expenses' },
+  { href: '/dashboard/finance', label: 'Finance' },
+  { href: '/dashboard/devices', label: 'Devices' },
+  { href: '/dashboard/settings', label: 'Shop Settings' },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -48,7 +51,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-4 px-3">
-          {NAV.map(({ href, label, icon }) => {
+          {NAV.map(({ href, label }) => {
             const active = href === '/dashboard' ? pathname === href : pathname.startsWith(href);
             return (
               <Link
@@ -57,7 +60,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   ${active ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}
                 onClick={() => setSidebarOpen(false)}
               >
-                <span>{icon}</span>
                 {label}
               </Link>
             );
@@ -66,23 +68,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* User */}
         <div className="border-t border-gray-200 p-4">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm">
-              {user?.firstName?.[0] ?? user?.email?.[0]?.toUpperCase() ?? '?'}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">
-                {user?.firstName ? `${user.firstName} ${user.lastName ?? ''}`.trim() : user?.email}
-              </p>
-              <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-            </div>
-          </div>
-          <button
-            onClick={logout}
-            className="w-full text-sm text-gray-500 hover:text-red-600 text-left transition"
-          >
-            Sign out →
-          </button>
+          <UserMenuDropdown
+            name={user?.firstName ? `${user.firstName} ${user.lastName ?? ''}`.trim() : user?.email ?? ''}
+            email={user?.email}
+            initial={user?.firstName?.[0] ?? user?.email?.[0]?.toUpperCase() ?? '?'}
+            onLogout={logout}
+          />
         </div>
       </aside>
 
@@ -96,6 +87,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </svg>
           </button>
           <span className="ml-4 text-lg font-bold text-indigo-700">Matjari</span>
+        </header>
+
+        {/* Top bar (desktop) */}
+        <header className="hidden md:flex h-16 bg-white border-b border-gray-200 items-center justify-between px-6">
+          <h1 className="text-lg font-semibold text-gray-900">
+            {[...NAV].reverse().find(({ href }) => href === '/dashboard' ? pathname === href : pathname.startsWith(href))?.label ?? ''}
+          </h1>
+          <LowStockBell />
         </header>
 
         {/* Page content */}

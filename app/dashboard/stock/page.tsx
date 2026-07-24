@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/src/presentation/hooks/useAuth';
 import { stockApi, productApi } from '@/src/core/api/api';
 
@@ -17,14 +18,10 @@ interface Product { id: string; name: string; tracksStock: boolean; stock: numbe
 
 export default function StockPage() {
   const { orgId } = useAuth();
+  const router = useRouter();
   const [movements, setMovements] = useState<Movement[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [mode, setMode] = useState<'add' | 'adjust'>('add');
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ productId: '', qty: '', reason: '' });
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
 
   const load = () => {
     if (!orgId) { setLoading(false); return; }
@@ -37,79 +34,19 @@ export default function StockPage() {
 
   useEffect(load, [orgId]);
 
-  const openForm = (m: 'add' | 'adjust') => {
-    setMode(m);
-    setForm({ productId: '', qty: '', reason: '' });
-    setError('');
-    setShowForm(true);
-  };
-
-  async function handleSave(e: React.FormEvent) {
-    e.preventDefault();
-    if (!orgId) return;
-    setSaving(true); setError('');
-    try {
-      if (mode === 'add') {
-        await stockApi.add(orgId, { productId: form.productId, qty: parseInt(form.qty) || 0, reason: form.reason || undefined });
-      } else {
-        await stockApi.adjust(orgId, { productId: form.productId, newQty: parseInt(form.qty) || 0, reason: form.reason || undefined });
-      }
-      setShowForm(false);
-      load();
-    } catch (err: any) { setError(err.message); }
-    finally { setSaving(false); }
-  }
-
-  const trackedProducts = products.filter((p) => p.tracksStock);
-
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Stock Management</h1>
         <div className="flex gap-2">
-          <button onClick={() => openForm('add')} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition">
+          <button onClick={() => router.push('/dashboard/stock/add')} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition">
             + Stock in
           </button>
-          <button onClick={() => openForm('adjust')} className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-semibold hover:bg-gray-50 transition">
+          <button onClick={() => router.push('/dashboard/stock/adjust')} className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-semibold hover:bg-gray-50 transition">
             Adjust / count
           </button>
         </div>
       </div>
-
-      {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4">
-            <h2 className="text-lg font-bold mb-4">{mode === 'add' ? 'Add Stock (purchase / delivery)' : 'Adjust Stock (physical count)'}</h2>
-            {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
-            <form onSubmit={handleSave} className="space-y-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Product</label>
-                <select value={form.productId} onChange={(e) => setForm((f) => ({ ...f, productId: e.target.value }))} required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-                  <option value="">Select a product</option>
-                  {trackedProducts.map((p) => <option key={p.id} value={p.id}>{p.name} (current: {p.stock})</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{mode === 'add' ? 'Quantity to add' : 'New total quantity'}</label>
-                <input type="number" min="0" value={form.qty} onChange={(e) => setForm((f) => ({ ...f, qty: e.target.value }))} required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Reason (optional)</label>
-                <input type="text" value={form.reason} onChange={(e) => setForm((f) => ({ ...f, reason: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
-              </div>
-              <div className="flex gap-2 pt-2">
-                <button type="button" onClick={() => setShowForm(false)} className="flex-1 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50">Cancel</button>
-                <button type="submit" disabled={saving} className="flex-1 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50">
-                  {saving ? 'Saving…' : 'Save'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {loading ? (
         <div className="text-center py-12 text-gray-400">Loading…</div>

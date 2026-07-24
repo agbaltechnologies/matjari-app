@@ -84,6 +84,46 @@ export const deviceApi = {
   settings: (orgId: string)             => httpClient.get(`/shop/${orgId}/settings/devices`),
 };
 
+// ─── Finance (nodes / accounts / allocations / plans / revenue) ────────────
+export const financeApi = {
+  // Nodes
+  listNodes:   (orgId: string)                  => httpClient.get(`/shop/${orgId}/finance/nodes`),
+  getNode:     (orgId: string, id: string)      => httpClient.get(`/shop/${orgId}/finance/nodes/${id}`),
+  createNode:  (orgId: string, d: any)          => httpClient.post(`/shop/${orgId}/finance/nodes`, d),
+  updateNode:  (orgId: string, id: string, d: any) => httpClient.put(`/shop/${orgId}/finance/nodes/${id}`, d),
+  deleteNode:  (orgId: string, id: string)      => httpClient.delete(`/shop/${orgId}/finance/nodes/${id}`),
+  nodeSummary: (orgId: string, id: string)      => httpClient.get(`/shop/${orgId}/finance/nodes/${id}/summary`),
+  nodeVariance:(orgId: string, id: string, asOf?: string) =>
+    httpClient.get(`/shop/${orgId}/finance/nodes/${id}/variance`, asOf ? { asOf } : undefined),
+  overallSummary: (orgId: string) => httpClient.get(`/shop/${orgId}/finance/summary`),
+
+  // Accounts
+  listAccounts:  (orgId: string, nodeId: string) => httpClient.get(`/shop/${orgId}/finance/accounts`, { nodeId }),
+  createAccount: (orgId: string, d: any)         => httpClient.post(`/shop/${orgId}/finance/accounts`, d),
+  updateAccount: (orgId: string, id: string, d: any) => httpClient.put(`/shop/${orgId}/finance/accounts/${id}`, d),
+  deleteAccount: (orgId: string, id: string)     => httpClient.delete(`/shop/${orgId}/finance/accounts/${id}`),
+
+  // Revenue
+  listRevenue:  (orgId: string, nodeId: string) => httpClient.get(`/shop/${orgId}/finance/revenue`, { nodeId }),
+  createRevenue:(orgId: string, d: any)         => httpClient.post(`/shop/${orgId}/finance/revenue`, d),
+  deleteRevenue:(orgId: string, id: string)     => httpClient.delete(`/shop/${orgId}/finance/revenue/${id}`),
+
+  // Plans
+  listPlans:  (orgId: string, nodeId: string) => httpClient.get(`/shop/${orgId}/finance/plans`, { nodeId }),
+  createPlan: (orgId: string, d: any)         => httpClient.post(`/shop/${orgId}/finance/plans`, d),
+  deletePlan: (orgId: string, id: string)     => httpClient.delete(`/shop/${orgId}/finance/plans/${id}`),
+
+  // Allocations
+  listAllocations:  (orgId: string, nodeId?: string) =>
+    httpClient.get(`/shop/${orgId}/finance/allocations`, nodeId ? { nodeId } : undefined),
+  createAllocation: (orgId: string, d: any)      => httpClient.post(`/shop/${orgId}/finance/allocations`, d),
+  deleteAllocation: (orgId: string, id: string)  => httpClient.delete(`/shop/${orgId}/finance/allocations/${id}`),
+
+  // Expense linking
+  linkExpense: (orgId: string, expenseId: string, nodeId: string) =>
+    httpClient.post(`/shop/${orgId}/finance/expenses/${expenseId}/link-node`, { nodeId }),
+};
+
 // ─── Storage ──────────────────────────────────────────────────────────────
 export const storageApi = {
   uploadFile: (orgId: string, file: File, folderPath = 'products') => {

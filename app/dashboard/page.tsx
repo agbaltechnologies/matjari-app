@@ -1,7 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/src/presentation/hooks/useAuth';
 import { saleApi, expenseApi, productApi, customerApi } from '@/src/core/api/api';
+import { useLowStockAlerts } from '@/src/presentation/hooks/useLowStockAlerts';
 
 interface Summary {
   totalRevenue?: number;
@@ -24,6 +26,7 @@ function StatCard({ label, value, icon, color }: { label: string; value: string;
 
 export default function DashboardPage() {
   const { orgId } = useAuth();
+  const { lowStock, outOfStock } = useLowStockAlerts();
   const [summary, setSummary] = useState<Summary>({});
   const [productCount, setProductCount] = useState(0);
   const [customerCount, setCustomerCount] = useState(0);
@@ -68,23 +71,47 @@ export default function DashboardPage() {
         <StatCard label="Customers" value={String(customerCount)} icon="👥" color="bg-orange-50" />
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Recent Sales</h2>
-        {recentSales.length === 0 ? (
-          <p className="text-gray-400 text-sm">No sales yet.</p>
-        ) : (
-          <div className="space-y-2">
-            {recentSales.map((s: any) => (
-              <div key={s.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
-                <div>
-                  <p className="text-sm font-medium text-gray-800">#{s.id?.slice(-6)}</p>
-                  <p className="text-xs text-gray-400">{s.paymentMethod} · {s.items?.length ?? 0} item(s)</p>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Recent Sales</h2>
+          {recentSales.length === 0 ? (
+            <p className="text-gray-400 text-sm">No sales yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {recentSales.map((s: any) => (
+                <div key={s.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">#{s.id?.slice(-6)}</p>
+                    <p className="text-xs text-gray-400">{s.paymentMethod} · {s.items?.length ?? 0} item(s)</p>
+                  </div>
+                  <span className="text-sm font-semibold text-green-700">{fmt(s.totalAmount)} DA</span>
                 </div>
-                <span className="text-sm font-semibold text-green-700">{fmt(s.totalAmount)} DA</span>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Stock Alerts</h2>
+          {outOfStock.length === 0 && lowStock.length === 0 ? (
+            <p className="text-gray-400 text-sm">All stocked up.</p>
+          ) : (
+            <div className="space-y-2">
+              {[...outOfStock, ...lowStock].map((p) => (
+                <Link
+                  key={p.id}
+                  href={`/dashboard/products/${p.id}/edit`}
+                  className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0 hover:bg-gray-50 -mx-1 px-1 rounded"
+                >
+                  <p className="text-sm font-medium text-gray-800 truncate">{p.name}</p>
+                  <span className={`text-sm font-semibold ${p.stock === 0 ? 'text-red-600' : 'text-amber-600'}`}>
+                    {p.stock === 0 ? 'Out of stock' : `${p.stock} left (alert at ${p.lowStockAlert})`}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
